@@ -23,13 +23,11 @@ const Post = mongoose.model('Post', postSchema);
 // 3. 미들웨어 설정 (데이터 해석 및 정적 파일 연결)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json()); // JSON 형식 데이터도 받을 수 있게 추가
-app.use(express.static(path.join(__dirname, 'public'))); // 현재 폴더의 파일들을 서버에 연결
-
+app.use(express.static(path.join(__dirname, 'public')));
 // 4. 메인 페이지 접속 시 index.html 보여주기
-app.get('/', (req, res) => {
+pp.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
 // 5. 게시글 저장 API (C: Create)
 app.post('/add-post', async (req, res) => {
     try {

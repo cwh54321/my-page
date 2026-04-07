@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>최원혁의 포트폴리오</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <header>
+        <div>
+            <h1>안녕하세요 저는 2학년 4반 최원혁 입니다</h1>
+            <h3>저는 백엔드에 관심이 있습니다</h3>
+        </div> 
+    </header>
+
+    <main class="board-container">
+        <section class="write-section">
+            <h2>방명록 남기기</h2>
+            <form id="post-form" action="/add-post" method="POST">
+                <input type="text" name="nickname" placeholder="작성자" required>
+                <textarea name="content" placeholder="응원 한마디!" required></textarea>
+                <button type="submit" class="submit-btn">등록하기</button>
+            </form>
+        </section>
+
+        <section class="list-section">
+            <h2>최근 게시물</h2>
+            <div id="post-list">
+                <div class="post-item">
+                    <p class="post-text">반갑습니다! 첫 번째 게시물이에요.</p>
+                    <span class="post-info">작성자: 관리자 | 2024-05-22</span>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+<script>
+  async function loadPosts() {
+      const res = await fetch('/posts');
+      const posts = await res.json();
+      const list = document.getElementById('post-list');
+      
+      list.innerHTML = posts.map(p => `
+          <div class="post-item">
+              <p class="post-text">${p.content}</p>
+              <span class="post-info">작성자: ${p.nickname} | ${new Date(p.date).toLocaleString()}</span>
+          </div>
+      `).join('');
+  }
+  loadPosts(); // 시작하자마자 로드
+</script>
+</html>

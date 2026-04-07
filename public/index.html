@@ -1,110 +1,50 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>최원혁의 방명록</title>
+    <title>원혁의 방명록</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        /* 추가될 디자인: 수정 버튼과 목록 간격 */
-        #post-list {
-            margin-top: 20px;
-        }
-        .post-item {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .post-content {
-            flex-grow: 1;
-        }
-        .edit-btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        .edit-btn:hover {
-            background-color: #45a049;
-        }
-        input {
-            padding: 8px;
-            margin-right: 5px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .post-item { background: #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; }
+        .edit-btn { background: #4CAF50; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; }
     </style>
 </head>
 <body>
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1>안녕하세요 저는 2학년 4반 최원혁 입니다</h1>
-        <p>저는 백엔드에 관심이 있습니다</p>
-
-        <hr>
-
-        <h3>방명록 남기기</h3>
-        <form onsubmit="addPost(event)">
-            <input type="text" id="nickname" placeholder="작성자" required style="width: 20%;">
-            <input type="text" id="content" placeholder="응원 한마디!" required style="width: 50%;">
-            <button type="submit" style="padding: 8px 15px; cursor: pointer;">등록하기</button>
-        </form>
-
-        <h3>최근 게시물</h3>
-        <div id="post-list">
-            </div>
-    </div>
+    <h1>최원혁의 방명록</h1>
+    <form onsubmit="addPost(event)">
+        <input type="text" id="nickname" placeholder="작성자" required>
+        <input type="text" id="content" placeholder="내용" required>
+        <button type="submit">등록</button>
+    </form>
+    <div id="post-list" style="margin-top:20px;"></div>
 
     <script>
-        // 1. 게시글 목록 불러오기
         async function loadPosts() {
-            const response = await fetch('/posts');
-            const posts = await response.json();
-            const list = document.getElementById('post-list');
-            list.innerHTML = '';
-
-            posts.forEach(post => {
-                const item = document.createElement('div');
-                item.className = 'post-item';
-                item.innerHTML = `
-                    <div class="post-content">
-                        <strong>${post.nickname}</strong>: <span>${post.content}</span>
-                    </div>
-                    <button class="edit-btn" onclick="editPost('${post._id}')">수정</button>
-                `;
-                list.appendChild(item);
-            });
+            const res = await fetch('/posts');
+            const posts = await res.json();
+            document.getElementById('post-list').innerHTML = posts.map(p => `
+                <div class="post-item">
+                    <div><strong>${p.nickname}</strong>: ${p.content}</div>
+                    <button class="edit-btn" onclick="editPost('${p._id}')">수정</button>
+                </div>
+            `).join('');
         }
-
-        // 2. 게시글 등록 (화면 유지)
-        async function addPost(event) {
-            event.preventDefault();
-            
+        async function addPost(e) {
+            e.preventDefault();
             const nickname = document.getElementById('nickname').value;
             const content = document.getElementById('content').value;
-
             await fetch('/add-post', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nickname, content })
             });
-
             document.getElementById('content').value = '';
-            loadPosts(); 
+            loadPosts();
         }
-
-        // 3. 게시글 수정
         async function editPost(id) {
-            const newContent = prompt("수정할 내용을 입력하세요:");
-            if (newContent && newContent.trim() !== "") {
+            const newContent = prompt("수정할 내용:");
+            if (newContent) {
                 await fetch(`/edit-post/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -113,8 +53,6 @@
                 loadPosts();
             }
         }
-
-        // 초기 로딩
         loadPosts();
     </script>
 </body>

@@ -28,8 +28,12 @@ app.post('/add-post', async (req, res) => {
     res.json({ success: true });
 });
 app.put('/edit-post/:id', async (req, res) => {
-    await Post.findByIdAndUpdate(req.params.id, { content: req.body.content });
-    res.json({ success: true });
+    try {
+        await Post.findByIdAndUpdate(req.params.id, { content: req.body.content });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).send(err);
+    }
 });
 
 module.exports = app;

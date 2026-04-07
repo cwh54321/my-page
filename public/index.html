@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>최원혁의 방명록</title>
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -11,7 +12,7 @@
         <p>저는 백엔드에 관심이 있습니다</p>
 
         <div class="card">
-            <h3>방명록 남기기</h3>
+            <h3 style="color: #00ff88; margin-bottom: 20px;">방명록 남기기</h3>
             <form action="/add-post" method="POST">
                 <input type="text" name="nickname" placeholder="작성자" required>
                 <textarea name="content" placeholder="응원 한마디!" required></textarea>
@@ -20,7 +21,7 @@
         </div>
 
         <div class="card recent-posts">
-            <h3>최근 게시물</h3>
+            <h3 style="color: #00ff88; margin-bottom: 20px;">최근 게시물</h3>
             <div id="post-list">
                 </div>
         </div>
@@ -35,13 +36,16 @@
 
             posts.forEach(post => {
                 const item = document.createElement('div');
+                // 디자인 유지를 위한 최소한의 간격 설정
                 item.style.borderBottom = "1px solid #333";
-                item.style.padding = "15px 0";
+                item.style.padding = "20px 0";
                 item.style.textAlign = "center";
                 
+                const dateStr = new Date(post.date).toLocaleString();
+                
                 item.innerHTML = `
-                    <div style="color: #fff; margin-bottom: 5px;">${post.content}</div>
-                    <div style="color: #666; font-size: 12px;">작성자: ${post.nickname}</div>
+                    <div style="color: #fff; font-size: 1.1rem; margin-bottom: 8px;">${post.content}</div>
+                    <div style="color: #666; font-size: 0.8rem;">작성자: ${post.nickname} | ${dateStr}</div>
                 `;
                 list.appendChild(item);
             });

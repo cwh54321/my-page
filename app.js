@@ -18,8 +18,7 @@ const postSchema = new mongoose.Schema({
     content: String,
     date: { type: Date, default: Date.now }
 });
-const Post = mongoose.model('Post', postSchema);
-
+const Post = mongoose.models.Post || mongoose.model('Post', postSchema);
 // 3. 미들웨어 설정 (데이터 해석 및 정적 파일 연결)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json()); // JSON 형식 데이터도 받을 수 있게 추가

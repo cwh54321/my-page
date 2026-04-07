@@ -27,7 +27,7 @@ app.get('/posts', async (req, res) => {
 app.post('/add-post', async (req, res) => {
     const newPost = new Post(req.body);
     await newPost.save();
-    res.redirect('/'); // 다시 메인으로!
+    res.redirect('/'); 
 });
 
 module.exports = app;

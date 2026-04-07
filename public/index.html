@@ -2,7 +2,6 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>최원혁의 방명록</title>
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -28,7 +27,6 @@
     </div>
 
     <script>
-        // 서버에서 게시글 불러오기
         async function loadPosts() {
             const response = await fetch('/posts');
             const posts = await response.json();
@@ -37,14 +35,13 @@
 
             posts.forEach(post => {
                 const item = document.createElement('div');
-                // 원혁님 스타일 유지용 인라인 스타일
                 item.style.borderBottom = "1px solid #333";
                 item.style.padding = "15px 0";
                 item.style.textAlign = "center";
                 
                 item.innerHTML = `
                     <div style="color: #fff; margin-bottom: 5px;">${post.content}</div>
-                    <div style="color: #666; font-size: 12px;">작성자: ${post.nickname}</div>
+                    <div style="color: #666; font-size: 12px;">작성자: ${post.nickname} | ${new Date(post.date).toLocaleString()}</div>
                 `;
                 list.appendChild(item);
             });

@@ -4,7 +4,7 @@ const path = require('path');
 const app = express();
 
 const dbURI = process.env.MONGODB_URI;
-mongoose.connect(dbURI).then(() => console.log("DB 연결 성공")).catch(err => console.log(err));
+mongoose.connect(dbURI).then(() => console.log("DB 연결됨")).catch(err => console.log(err));
 
 const postSchema = new mongoose.Schema({
     nickname: String,
@@ -27,7 +27,7 @@ app.get('/posts', async (req, res) => {
 app.post('/add-post', async (req, res) => {
     const newPost = new Post(req.body);
     await newPost.save();
-    res.redirect('/'); // 등록 후 다시 메인으로 (원래 방식)
+    res.redirect('/'); // 다시 메인으로!
 });
 
 module.exports = app;

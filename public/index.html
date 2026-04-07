@@ -28,7 +28,7 @@
     </div>
 
     <script>
-        // 처음 상태 그대로: 목록만 불러오는 기능
+        // 서버에서 게시글 불러오기
         async function loadPosts() {
             const response = await fetch('/posts');
             const posts = await response.json();
@@ -37,8 +37,9 @@
 
             posts.forEach(post => {
                 const item = document.createElement('div');
+                // 원혁님 스타일 유지용 인라인 스타일
                 item.style.borderBottom = "1px solid #333";
-                item.style.padding = "10px 0";
+                item.style.padding = "15px 0";
                 item.style.textAlign = "center";
                 
                 item.innerHTML = `

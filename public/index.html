@@ -2,52 +2,76 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>최원혁의 포트폴리오</title>
+    <title>최원혁의 방명록</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <header>
-        <div>
-            <h1>안녕하세요 저는 2학년 4반 최원혁 입니다</h1>
-            <h3>저는 백엔드에 관심이 있습니다</h3>
-        </div> 
-    </header>
+    <h1>안녕하세요 저는 2학년 4반 최원혁 입니다</h1>
+    <p>저는 백엔드에 관심이 있습니다</p>
 
-    <main class="board-container">
-        <section class="write-section">
-            <h2>방명록 남기기</h2>
-            <form id="post-form" action="/add-post" method="POST">
-                <input type="text" name="nickname" placeholder="작성자" required>
-                <textarea name="content" placeholder="응원 한마디!" required></textarea>
-                <button type="submit" class="submit-btn">등록하기</button>
-            </form>
-        </section>
+    <h3>방명록 남기기</h3>
+    <form onsubmit="addPost(event)">
+        <input type="text" id="nickname" placeholder="작성자" required>
+        <input type="text" id="content" placeholder="응원 한마디!" required>
+        <button type="submit">등록하기</button>
+    </form>
 
-        <section class="list-section">
-            <h2>최근 게시물</h2>
-            <div id="post-list">
-                <div class="post-item">
-                    <p class="post-text">반갑습니다! 첫 번째 게시물이에요.</p>
-                    <span class="post-info">작성자: 관리자 | 2024-05-22</span>
-                </div>
-            </div>
-        </section>
-    </main>
+    <h3>최근 게시물</h3>
+    <div id="post-list">
+        </div>
+
+    <script>
+        // 1. 글 등록 (화면 유지)
+        async function addPost(event) {
+            event.preventDefault(); // 페이지 새로고침 방지!
+            
+            const nickname = document.getElementById('nickname').value;
+            const content = document.getElementById('content').value;
+
+            await fetch('/add-post', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nickname, content })
+            });
+
+            document.getElementById('content').value = ''; // 내용창만 비우기
+            loadPosts(); // 목록 새로고침
+        }
+
+        // 2. 글 목록 불러오기 (수정 버튼 포함)
+        async function loadPosts() {
+            const response = await fetch('/posts');
+            const posts = await response.json();
+            const list = document.getElementById('post-list');
+            list.innerHTML = '';
+
+            posts.forEach(post => {
+                const item = document.createElement('div');
+                item.style.borderBottom = "1px solid #ccc";
+                item.style.padding = "10px 0";
+                item.innerHTML = `
+                    <strong>${post.nickname}</strong>: <span>${post.content}</span>
+                    <button onclick="editPost('${post._id}')" style="margin-left:10px;">수정</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // 3. 글 수정 기능
+        async function editPost(id) {
+            const newContent = prompt("수정할 내용을 입력하세요:");
+            if (newContent) {
+                await fetch(`/edit-post/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: newContent })
+                });
+                loadPosts();
+            }
+        }
+
+        // 처음 접속 시 목록 불러오기
+        loadPosts();
+    </script>
 </body>
-<script>
-  async function loadPosts() {
-      const res = await fetch('/posts');
-      const posts = await res.json();
-      const list = document.getElementById('post-list');
-      
-      list.innerHTML = posts.map(p => `
-          <div class="post-item">
-              <p class="post-text">${p.content}</p>
-              <span class="post-info">작성자: ${p.nickname} | ${new Date(p.date).toLocaleString()}</span>
-          </div>
-      `).join('');
-  }
-  loadPosts(); // 시작하자마자 로드
-</script>
 </html>

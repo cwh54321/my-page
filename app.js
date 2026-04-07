@@ -11,20 +11,17 @@ mongoose.connect(dbURI)
     .then(() => console.log("✅ 몽고DB 연결 성공!"))
     .catch(err => console.log("❌ DB 연결 에러:", err));
 
-// 2. 스키마 및 모델 정의 (중요: 서버리스 중복 생성 방지 로직)
+// 2. 스키마 및 모델 정의 (중복 생성 방지)
 const postSchema = new mongoose.Schema({
     nickname: String,
     content: String,
     date: { type: Date, default: Date.now }
 });
-
-// 이 줄이 핵심입니다! 이미 있으면 쓰고 없으면 만듭니다.
 const Post = mongoose.models.Post || mongoose.model('Post', postSchema);
 
-// 3. 미들웨어 및 정적 파일 경로 설정
+// 3. 미들웨어 설정
+app.use(bodyParser.json()); // JSON 데이터를 받기 위해 필수!
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json());
-// public 폴더를 기준으로 파일을 찾게 합니다.
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 4. API 경로들
@@ -32,17 +29,19 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// 게시글 저장
 app.post('/add-post', async (req, res) => {
     try {
         const { nickname, content } = req.body;
         const newPost = new Post({ nickname, content });
         await newPost.save();
-        res.redirect('/');
+        res.json({ success: true }); // 페이지 이동 대신 성공 신호만 보냄
     } catch (err) {
-        res.status(500).send("저장 실패");
+        res.status(500).json({ error: "저장 실패" });
     }
 });
 
+// 게시글 불러오기
 app.get('/posts', async (req, res) => {
     try {
         const posts = await Post.find().sort({ date: -1 });
@@ -52,4 +51,16 @@ app.get('/posts', async (req, res) => {
     }
 });
 
-module.exports = app; // Vercel 배포를 위해 추가
+// 게시글 수정 (새로 추가된 기능!)
+app.put('/edit-post/:id', async (req, res) => {
+    try {
+        const { content } = req.body;
+        await Post.findByIdAndUpdate(req.params.id, { content });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "수정 실패" });
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 서버 가동 중: http://localhost:${PORT}`));

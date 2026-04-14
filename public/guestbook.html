@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChoiWonHyeok | Guestbook</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* 네비게이션 스타일 (Home, Study와 통일) */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 15%;
+            background: #000;
+            border-bottom: 1px solid #1a1a1a;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { font-size: 1.4rem; font-weight: bold; color: #00ff88; text-decoration: none; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: #888; text-decoration: none; font-size: 0.95rem; transition: 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="nav-logo">ChoiWonHyeok</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/study">Study</a>
+            <a href="/guestbook" class="active">Guestbook</a>
+        </div>
+    </nav>
+
+    <div class="board-container">
+        <section class="write-section">
+            <h2>방명록 남기기</h2>
+            <form id="post-form">
+                <input type="text" id="nickname" placeholder="작성자" required>
+                <textarea id="content" placeholder="응원 한마디!" required></textarea>
+                <button type="submit" class="submit-btn">등록하기</button>
+            </form>
+        </section>
+
+        <section class="list-section">
+            <h2>최근 게시물</h2>
+            <div id="post-list"></div>
+        </section>
+    </div>
+
+    <script>
+        // 게시글 등록
+        document.getElementById('post-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nickname = document.getElementById('nickname').value;
+            const content = document.getElementById('content').value;
+
+            await fetch('/add-post', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nickname, content })
+            });
+
+            document.getElementById('content').value = '';
+            loadPosts();
+        });
+
+        // 게시글 로드 (수정/삭제 포함)
+        async function loadPosts() {
+            const response = await fetch('/posts');
+            const posts = await response.json();
+            const list = document.getElementById('post-list');
+            list.innerHTML = '';
+
+            posts.forEach(post => {
+                const item = document.createElement('div');
+                item.className = 'post-item';
+                item.innerHTML = `
+                    <div class="post-text">${post.content}</div>
+                    <div class="post-info">
+                        작성자: ${post.nickname} | ${new Date(post.date).toLocaleString()}
+                        <span style="color: #00ff88; cursor: pointer; margin-left: 12px;" onclick="editPost('${post._id}', '${post.content}')">[수정]</span>
+                        <span style="color: #ff4444; cursor: pointer; margin-left: 8px;" onclick="deletePost('${post._id}')">[삭제]</span>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        async function editPost(id, oldContent) {
+            const newContent = prompt("수정할 내용을 입력하세요:", oldContent);
+            if (newContent && newContent !== oldContent) {
+                await fetch(`/update-post/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: newContent })
+                });
+                loadPosts();
+            }
+        }
+
+        async function deletePost(id) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                await fetch(`/delete-post/${id}`, { method: 'DELETE' });
+                loadPosts();
+            }
+        }
+
+        loadPosts();
+    </script>
+</body>
+</html>

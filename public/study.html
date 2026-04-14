@@ -5,12 +5,60 @@
     <title>ChoiWonHyeok | Study Log</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        /* 테이블 스타일 */
+        /* 네비게이션 바 디자인 수정 */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 15%; /* 좌우 여백을 넓혀서 가운데로 모음 */
+            background: #000;
+            border-bottom: 1px solid #1a1a1a;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { 
+            font-size: 1.4rem; 
+            font-weight: bold; 
+            color: #00ff88; /* 로고도 네온 그린으로 포인트 */
+            text-decoration: none; 
+            letter-spacing: -1px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        .nav-links a { 
+            color: #888; 
+            text-decoration: none; 
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: 0.3s; 
+        }
+        .nav-links a:hover, .nav-links a.active { 
+            color: #fff; /* 활성화되거나 마우스 올리면 흰색으로 */
+        }
+    
+        /* 테이블 레이아웃 보정 */
+        .board-container {
+            max-width: 900px; /* 너무 퍼지지 않게 조절 */
+            margin: 40px auto;
+        }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; color: #fff; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #333; }
-        th { color: #888; font-size: 0.9rem; }
-        .tag { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; background: #333; color: #00ff88; }
+        th { color: #555; font-size: 0.85rem; padding-bottom: 15px; border-bottom: 2px solid #1a1a1a; }
+        td { padding: 20px 10px; border-bottom: 1px solid #1a1a1a; }
+        .tag { padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; background: #1a1a1a; color: #00ff88; border: 1px solid #333; }
     </style>
+    
+    <nav>
+        <a href="/" class="nav-logo">ChoiWonHyeok</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/study" class="active">Study</a>
+            <a href="/guestbook">Guestbook</a>
+        </div>
+    </nav>
 </head>
 <body>
     <nav>

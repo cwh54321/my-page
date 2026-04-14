@@ -35,4 +35,14 @@ app.post('/add-post', async (req, res) => { await new Post(req.body).save(); res
 app.get('/studies', async (req, res) => res.json(await Study.find().sort({ date: -1 })));
 app.post('/add-study', async (req, res) => { await new Study(req.body).save(); res.status(201).json({ok:true}); });
 
+app.get('/study/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'detail.html'));
+});
+
+// 특정 ID의 스터디 데이터만 가져오는 API
+app.get('/api/study/:id', async (req, res) => {
+    const study = await Study.findById(req.params.id);
+    res.json(study);
+});
+
 module.exports = app;

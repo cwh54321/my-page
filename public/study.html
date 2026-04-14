@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>ChoiWonHyeok | Study Log</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* 테이블 스타일 */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; color: #fff; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #888; font-size: 0.9rem; }
+        .tag { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; background: #333; color: #00ff88; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="nav-logo">ChoiWonHyeok</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/study" class="active">Study</a>
+            <a href="/guestbook">Guestbook</a>
+        </div>
+    </nav>
+
+    <div class="board-container">
+        <section class="list-section">
+            <h2>Study Log</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>주제</th>
+                        <th>분야</th>
+                        <th>날짜</th>
+                    </tr>
+                </thead>
+                <tbody id="study-list">
+                    </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+        async function loadStudies() {
+            const res = await fetch('/studies');
+            const data = await res.json();
+            const list = document.getElementById('study-list');
+            list.innerHTML = data.map(s => `
+                <tr>
+                    <td>${s.title}</td>
+                    <td><span class="tag">${s.category}</span></td>
+                    <td style="color: #666; font-size: 0.8rem;">${new Date(s.date).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+        loadStudies();
+    </script>
+</body>
+</html>

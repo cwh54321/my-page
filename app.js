@@ -26,6 +26,25 @@ app.get('/study/:id', (req, res) => res.sendFile(path.join(__dirname, 'public', 
 // [API] 방명록
 app.get('/posts', async (req, res) => res.json(await Post.find().sort({ date: -1 })));
 app.post('/add-post', async (req, res) => { await new Post(req.body).save(); res.status(201).json({ok:true}); });
+// [API] 방명록 수정 (PUT)
+app.put('/update-post/:id', async (req, res) => {
+    try {
+        await Post.findByIdAndUpdate(req.params.id, { content: req.body.content });
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ ok: false });
+    }
+});
+
+// [API] 방명록 삭제 (DELETE)
+app.delete('/delete-post/:id', async (req, res) => {
+    try {
+        await Post.findByIdAndDelete(req.params.id);
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ ok: false });
+    }
+});
 
 // [API] 스터디로그 (CRUD)
 app.get('/studies', async (req, res) => res.json(await Study.find().sort({ date: -1 })));

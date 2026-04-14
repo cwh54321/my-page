@@ -7,64 +7,44 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 15%; background: #000; border-bottom: 1px solid #1a1a1a; }
-        .nav-logo { font-size: 1.4rem; font-weight: bold; color: #00ff88; text-decoration: none; }
-        
         .detail-container { max-width: 800px; margin: 50px auto; padding: 0 20px; color: #fff; }
-        .detail-header { border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-        .detail-title { font-size: 2.5rem; margin-bottom: 10px; }
-        .detail-meta { color: #888; font-size: 0.9rem; }
-        
-        .study-image { width: 100%; border-radius: 15px; margin-bottom: 30px; display: none; }
-        
-        /* 마크다운 스타일링 */
-        #content-view { line-height: 1.8; font-size: 1.1rem; color: #ddd; }
-        #content-view h1, #content-view h2 { color: #00ff88; margin-top: 30px; }
-        #content-view code { background: #333; padding: 2px 6px; border-radius: 4px; color: #ff79c6; }
-        #content-view pre { background: #1a1a1a; padding: 20px; border-radius: 10px; overflow-x: auto; border: 1px solid #333; }
+        .admin-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn-edit { background: none; border: 1px solid #00ff88; color: #00ff88; padding: 5px 15px; cursor: pointer; border-radius: 5px; }
+        .btn-delete { background: none; border: 1px solid #ff4444; color: #ff4444; padding: 5px 15px; cursor: pointer; border-radius: 5px; }
+        .study-image { width: 100%; border-radius: 15px; margin: 20px 0; display: none; }
+        #content-view { line-height: 1.8; color: #ddd; }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="/" class="nav-logo">ChoiWonHyeok</a>
-    </nav>
-
+    <nav><a href="/" style="color:#00ff88; font-weight:bold; text-decoration:none;">ChoiWonHyeok</a></nav>
     <div class="detail-container">
-        <div class="detail-header">
-            <div id="category-tag" class="tag" style="display:inline-block; margin-bottom:10px;"></div>
-            <h1 id="title" class="detail-title">로딩 중...</h1>
-            <div id="date" class="detail-meta"></div>
-        </div>
-
-        <img id="main-image" class="study-image" alt="study image">
-        
-        <div id="content-view">
-            </div>
-
-        <button class="submit-btn" style="margin-top: 50px; background: #333;" onclick="history.back()">뒤로 가기</button>
+        <div id="category-tag" class="tag" style="color:#00ff88; border:1px solid #333; padding:5px 10px; border-radius:15px; display:inline-block;"></div>
+        <h1 id="title" style="font-size: 2.5rem; margin: 10px 0;"></h1>
+        <div id="date" style="color: #666; margin-bottom: 20px;"></div>
+        <div class="admin-btns"><button class="btn-edit" onclick="editStudy()">수정</button><button class="btn-delete" onclick="deleteStudy()">삭제</button></div>
+        <img id="main-image" class="study-image">
+        <div id="content-view"></div>
+        <button class="submit-btn" style="margin-top: 50px; background: #333;" onclick="location.href='/study'">목록으로</button>
     </div>
-
     <script>
-        async function loadDetail() {
-            // URL에서 ID 추출 (예: /study/65fc...)
-            const id = window.location.pathname.split('/').pop();
-            const res = await fetch(`/api/study/${id}`);
-            const study = await res.json();
-
-            document.getElementById('title').innerText = study.title;
-            document.getElementById('category-tag').innerText = study.category;
-            document.getElementById('date').innerText = new Date(study.date).toLocaleDateString();
-            
-            // 이미지 있으면 표시
-            if(study.imageUrl) {
-                const img = document.getElementById('main-image');
-                img.src = study.imageUrl;
-                img.style.display = 'block';
-            }
-
-            // 마크다운 변환
-            document.getElementById('content-view').innerHTML = marked.parse(study.content || '');
+        let studyId = window.location.pathname.split('/').pop();
+        let currentData = {};
+        async function load() {
+            const res = await fetch(`/api/study/${studyId}`);
+            currentData = await res.json();
+            document.getElementById('title').innerText = currentData.title;
+            document.getElementById('category-tag').innerText = currentData.category;
+            document.getElementById('date').innerText = new Date(currentData.date).toLocaleDateString();
+            if(currentData.imageUrl) { const img = document.getElementById('main-image'); img.src = currentData.imageUrl; img.style.display = 'block'; }
+            document.getElementById('content-view').innerHTML = marked.parse(currentData.content || '');
         }
-        loadDetail();
+        async function deleteStudy() { if(confirm("삭제할까요?")) { await fetch(`/api/study/${studyId}`, {method:'DELETE'}); location.href='/study'; } }
+        async function editStudy() {
+            const t = prompt("제목 수정:", currentData.title);
+            const c = prompt("내용 수정:", currentData.content);
+            if(t && c) { await fetch(`/api/study/${studyId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:t, content:c}) }); location.reload(); }
+        }
+        load();
     </script>
 </body>
 </html>

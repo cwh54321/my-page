@@ -11,8 +11,13 @@ const Post = mongoose.models.Post || mongoose.model('Post', new mongoose.Schema(
     nickname: String, content: String, date: { type: Date, default: Date.now }
 }));
 const Study = mongoose.models.Study || mongoose.model('Study', new mongoose.Schema({
-    title: String, category: String, date: { type: Date, default: Date.now }
+    title: String,
+    category: String,
+    content: String, // 여기에 마크다운 텍스트가 저장됨
+    imageUrl: String, // 이미지 주소 저장
+    date: { type: Date, default: Date.now }
 }));
+
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));

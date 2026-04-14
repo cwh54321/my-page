@@ -4,53 +4,25 @@
     <meta charset="UTF-8">
     <title>ChoiWonHyeok | Study Log</title>
     <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* 네비게이션 바 디자인 수정 */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 15%; /* 좌우 여백을 넓혀서 가운데로 모음 */
-            background: #000;
-            border-bottom: 1px solid #1a1a1a;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .nav-logo { 
-            font-size: 1.4rem; 
-            font-weight: bold; 
-            color: #00ff88; /* 로고도 네온 그린으로 포인트 */
-            text-decoration: none; 
-            letter-spacing: -1px;
-        }
-        .nav-links {
-            display: flex;
-            gap: 30px;
-        }
-        .nav-links a { 
-            color: #888; 
-            text-decoration: none; 
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: 0.3s; 
-        }
-        .nav-links a:hover, .nav-links a.active { 
-            color: #fff; /* 활성화되거나 마우스 올리면 흰색으로 */
-        }
-    
-        /* 테이블 레이아웃 보정 */
-        .board-container {
-            max-width: 900px; /* 너무 퍼지지 않게 조절 */
-            margin: 40px auto;
-        }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 15%; background: #000; border-bottom: 1px solid #1a1a1a; position: sticky; top: 0; z-index: 1000; }
+        .nav-logo { font-size: 1.4rem; font-weight: bold; color: #00ff88; text-decoration: none; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: #888; text-decoration: none; font-size: 0.95rem; transition: 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+        /* 기록하기 버튼 스타일 */
+        .write-btn { background: #5865f2; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; float: right; margin-bottom: 20px; font-weight: bold; }
+        
+        /* 입력 폼 스타일 (기본적으로 숨김) */
+        #study-form-section { display: none; background: #1a1a1a; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px solid #333; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; color: #fff; }
-        th { color: #555; font-size: 0.85rem; padding-bottom: 15px; border-bottom: 2px solid #1a1a1a; }
+        th { color: #555; font-size: 0.85rem; padding-bottom: 15px; border-bottom: 2px solid #1a1a1a; text-align: left; }
         td { padding: 20px 10px; border-bottom: 1px solid #1a1a1a; }
         .tag { padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; background: #1a1a1a; color: #00ff88; border: 1px solid #333; }
     </style>
-    
 </head>
 <body>
     <nav>
@@ -63,6 +35,19 @@
     </nav>
 
     <div class="board-container">
+        <button class="write-btn" onclick="toggleForm()">+ 기록하기</button>
+        <div style="clear: both;"></div>
+
+        <section id="study-form-section">
+            <h2 style="color: #00ff88; margin-bottom: 15px;">새 공부 기록</h2>
+            <input type="text" id="title" placeholder="주제 (예: Node.js 라우팅 이해)">
+            <input type="text" id="category" placeholder="분야 (예: Backend)">
+            <input type="text" id="imageUrl" placeholder="이미지 URL (선택사항)">
+            <textarea id="markdown-content" style="height: 200px;" placeholder="마크다운 형식으로 내용을 적으세요..."></textarea>
+            <button class="submit-btn" onclick="addStudy()">등록하기</button>
+            <button class="submit-btn" style="background: #444;" onclick="toggleForm()">취소</button>
+        </section>
+
         <section class="list-section">
             <h2>Study Log</h2>
             <table>
@@ -73,19 +58,38 @@
                         <th>날짜</th>
                     </tr>
                 </thead>
-                <tbody id="study-list">
-                    </tbody>
+                <tbody id="study-list"></tbody>
             </table>
         </section>
     </div>
 
     <script>
+        function toggleForm() {
+            const form = document.getElementById('study-form-section');
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function addStudy() {
+            const title = document.getElementById('title').value;
+            const category = document.getElementById('category').value;
+            const content = document.getElementById('markdown-content').value;
+            const imageUrl = document.getElementById('imageUrl').value;
+
+            await fetch('/add-study', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, category, content, imageUrl })
+            });
+
+            location.reload(); // 등록 후 새로고침
+        }
+
         async function loadStudies() {
             const res = await fetch('/studies');
             const data = await res.json();
             const list = document.getElementById('study-list');
             list.innerHTML = data.map(s => `
-                <tr>
+                <tr style="cursor: pointer;" onclick="alert('상세 내용은 다음 단계에서 구현할게요!')">
                     <td>${s.title}</td>
                     <td><span class="tag">${s.category}</span></td>
                     <td style="color: #666; font-size: 0.8rem;">${new Date(s.date).toLocaleDateString()}</td>

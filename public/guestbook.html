@@ -1,166 +1,79 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChoiWonHyeok | Guestbook</title>
+    <title>Guestbook | ChoiWonHyeok</title>
     <link rel="stylesheet" href="/style.css">
-    <style>
-        /* 네비게이션 스타일 (Home, Study와 통일) */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 15%;
-            background: #000;
-            border-bottom: 1px solid #1a1a1a;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .nav-logo {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #00ff88;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-        }
-
-        .nav-links a {
-            color: #888;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: 0.3s;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: #fff;
-        }
-    </style>
 </head>
-
 <body>
     <nav>
         <a href="/" class="nav-logo">ChoiWonHyeok</a>
         <div class="nav-links">
             <a href="/">Home</a>
             <a href="/study">Study</a>
-            <a href="/guestbook">Guestbook</a>
+            <a href="/guestbook" class="active">Guestbook</a>
             <span id="login-link"><a href="/login">Login</a></span>
         </div>
     </nav>
-    <div class="board-container">
-        <section class="write-section">
-            <h2>방명록 남기기</h2>
-            <form id="post-form">
-                <input type="text" id="nickname" placeholder="작성자" required>
-                <textarea id="content" placeholder="응원 한마디!" required></textarea>
-                <button type="submit" class="submit-btn">등록하기</button>
-            </form>
-        </section>
 
-        <section class="list-section">
-            <h2>최근 게시물</h2>
-            <div id="post-list"></div>
-        </section>
+    <div class="container" style="max-width: 600px;">
+        <h2>Guestbook</h2>
+        
+        <div id="guest-form" style="display: none; margin-bottom: 40px; background: #1a1a1a; padding: 20px; border-radius: 15px;">
+            <p id="user-info" style="color: #00ff88; margin-bottom: 10px;"></p>
+            <textarea id="content" placeholder="방명록을 남겨주세요!" style="width: 100%; height: 100px; background: #000; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 8px;"></textarea>
+            <button onclick="addPost()" class="submit-btn" style="width: 100%; margin-top: 10px;">등록하기</button>
+        </div>
+
+        <div id="login-msg" style="text-align: center; padding: 20px; border: 1px dashed #333; border-radius: 15px; margin-bottom: 40px;">
+            <p style="color: #888;">방명록을 남기려면 <a href="/login" style="color: #00ff88;">로그인</a>이 필요합니다.</p>
+        </div>
+
+        <div id="posts-list"></div>
     </div>
 
     <script>
-        // 게시글 등록
-        document.getElementById('post-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nickname = document.getElementById('nickname').value;
-            const content = document.getElementById('content').value;
-
-            await fetch('/add-post', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nickname, content })
-            });
-
-            document.getElementById('content').value = '';
-            loadPosts();
-        });
-
-        // 게시글 로드 (수정/삭제 포함)
-        async function loadPosts() {
-            const response = await fetch('/posts');
-            const posts = await response.json();
-            const list = document.getElementById('post-list');
-            list.innerHTML = '';
-
-            posts.forEach(post => {
-                const item = document.createElement('div');
-                item.className = 'post-item';
-                item.innerHTML = `
-                    <div class="post-text">${post.content}</div>
-                    <div class="post-info">
-                        작성자: ${post.nickname} | ${new Date(post.date).toLocaleString()}
-                        <span style="color: #00ff88; cursor: pointer; margin-left: 12px;" onclick="editPost('${post._id}', '${post.content}')">[수정]</span>
-                        <span style="color: #ff4444; cursor: pointer; margin-left: 8px;" onclick="deletePost('${post._id}')">[삭제]</span>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        async function editPost(id, oldContent) {
-            const newContent = prompt("수정할 내용을 입력하세요:", oldContent);
-            if (newContent && newContent !== oldContent) {
-                await fetch(`/update-post/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: newContent })
-                });
-                loadPosts();
-            }
-        }
-
-        async function deletePost(id) {
-            if (confirm("정말로 삭제하시겠습니까?")) {
-                await fetch(`/delete-post/${id}`, { method: 'DELETE' });
-                loadPosts();
-            }
-        }
-
-        loadPosts();
-
-        // 상단 네비게이션 및 권한 UI 제어 함수
-        async function checkLoginStatus() {
+        async function checkAuth() {
             const res = await fetch('/api/check-auth');
             const data = await res.json();
-
-            const loginLink = document.getElementById('login-link'); // 네비게이션의 로그인 링크
-            const writeBtn = document.getElementById('write-btn');   // 스터디 페이지의 글쓰기 버튼
-            const adminBtns = document.querySelector('.admin-btns'); // 상세 페이지의 수정/삭제 버튼 그룹
-
+            
             if (data.isLoggedIn) {
-                // 로그인 상태일 때
-                if (loginLink) loginLink.innerHTML = `<a href="#" onclick="logout()">Logout</a>`;
-                if (writeBtn) writeBtn.style.display = 'block';
-                if (adminBtns) adminBtns.style.display = 'flex';
-            } else {
-                // 로그아웃 상태일 때
-                if (writeBtn) writeBtn.style.display = 'none';
-                if (adminBtns) adminBtns.style.display = 'none';
+                document.getElementById('login-link').innerHTML = `<a href="#" onclick="handleLogout()">Logout</a>`;
+                document.getElementById('guest-form').style.display = 'block';
+                document.getElementById('login-msg').style.display = 'none';
+                document.getElementById('user-info').innerText = `작성자: ${data.userId}`;
             }
         }
 
-        async function logout() {
+        async function addPost() {
+            const content = document.getElementById('content').value;
+            const res = await fetch('/add-post', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            if(res.ok) { location.reload(); }
+        }
+
+        async function loadPosts() {
+            const res = await fetch('/posts');
+            const posts = await res.json();
+            document.getElementById('posts-list').innerHTML = posts.map(p => `
+                <div style="border-bottom: 1px solid #1a1a1a; padding: 15px 0;">
+                    <strong style="color: #00ff88;">${p.nickname}</strong>
+                    <p style="margin: 5px 0;">${p.content}</p>
+                    <small style="color: #555;">${new Date(p.date).toLocaleString()}</small>
+                </div>
+            `).join('');
+        }
+
+        async function handleLogout() {
             await fetch('/api/logout', { method: 'POST' });
             location.reload();
         }
 
-        // 페이지 로드 시 실행
-        checkLoginStatus();
+        checkAuth();
+        loadPosts();
     </script>
 </body>
-
 </html>

@@ -17,49 +17,27 @@
     </nav>
 
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h2>Study Logs</h2>
-            <button id="write-btn" class="submit-btn" style="display: none;" onclick="location.href='/write.html'">+ 기록하기</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <h2 style="font-size: 2rem;">Study Logs</h2>
+            <button id="write-btn" class="write-btn" style="display: none;" onclick="location.href='/register'">+ 기록하기</button>
         </div>
         <div id="study-list" class="grid"></div>
     </div>
 
     <script>
-        const ADMIN_ID = "wonhyeok_admin"; // 서버와 동일하게 설정
-
         async function loadStudies() {
             const res = await fetch('/studies');
-            const studies = await res.json();
-            const list = document.getElementById('study-list');
-            list.innerHTML = studies.map(s => `
+            const data = await res.json();
+            document.getElementById('study-list').innerHTML = data.map(s => `
                 <div class="card" onclick="location.href='/study/${s._id}'">
-                    <h3>${s.title}</h3>
-                    <p>${s.category}</p>
-                    <small>${new Date(s.date).toLocaleDateString()}</small>
+                    <span class="tag">${s.category}</span>
+                    <h3 style="margin: 15px 0 10px 0;">${s.title}</h3>
+                    <small style="color: #666;">${new Date(s.date).toLocaleDateString()}</small>
                 </div>
             `).join('');
         }
-
-        async function checkAuth() {
-            const res = await fetch('/api/check-auth');
-            const data = await res.json();
-            
-            if (data.isLoggedIn) {
-                document.getElementById('login-link').innerHTML = `<a href="#" onclick="handleLogout()">Logout</a>`;
-                // 아이디가 관리자인 경우에만 글쓰기 버튼 노출
-                if (data.userId === ADMIN_ID) {
-                    document.getElementById('write-btn').style.display = 'block';
-                }
-            }
-        }
-
-        async function handleLogout() {
-            await fetch('/api/logout', { method: 'POST' });
-            location.reload();
-        }
-
         loadStudies();
-        checkAuth();
     </script>
+    <script src="/auth.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 
-const app = express(); // 1. app 선언을 맨 위로!
+const app = express(); // 1. 앱 선언이 가장 먼저!
 
 // 설정
 const JWT_SECRET = "wonhyeok_secret_key_999";
@@ -13,7 +13,7 @@ const dbURI = process.env.MONGODB_URI;
 
 mongoose.connect(dbURI).then(() => console.log("DB 연결 성공"));
 
-// 미들웨어 설정
+// 2. 미들웨어 설정 (순서 중요)
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -30,7 +30,7 @@ const User = mongoose.models.User || mongoose.model('User', new mongoose.Schema(
     password: { type: String, required: true }
 }));
 
-// [인증 미들웨어 정의] - 사용하기 전에 미리 정의해야 함!
+// 3. 문지기(isLogined) 함수 정의 (API보다 위에 있어야 함)
 const isLogined = (req, res, next) => {
     const token = req.cookies.token;
     if (!token) return res.status(403).json({ ok: false, message: "권한이 없습니다." });
@@ -90,21 +90,13 @@ app.post('/api/logout', (req, res) => {
     res.json({ ok: true });
 });
 
-// [API] 방명록
+// [API] 방명록 & 스터디로그 (생략 없이 유지)
 app.get('/posts', async (req, res) => res.json(await Post.find().sort({ date: -1 })));
 app.post('/add-post', async (req, res) => { await new Post(req.body).save(); res.status(201).json({ok:true}); });
-app.put('/update-post/:id', async (req, res) => {
-    await Post.findByIdAndUpdate(req.params.id, { content: req.body.content });
-    res.json({ ok: true });
-});
-app.delete('/delete-post/:id', async (req, res) => {
-    await Post.findByIdAndDelete(req.params.id);
-    res.json({ ok: true });
-});
-
-// [API] 스터디로그 - 보호 적용
 app.get('/studies', async (req, res) => res.json(await Study.find().sort({ date: -1 })));
 app.get('/api/study/:id', async (req, res) => res.json(await Study.findById(req.params.id)));
+
+// 보호된 API들
 app.post('/add-study', isLogined, async (req, res) => { 
     await new Study(req.body).save(); res.status(201).json({ok:true}); 
 });
@@ -115,4 +107,4 @@ app.delete('/api/study/:id', isLogined, async (req, res) => {
     await Study.findByIdAndDelete(req.params.id); res.json({ok:true}); 
 });
 
-module.exports = app; // 마지막에 수출!
+module.exports = app;

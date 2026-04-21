@@ -1,23 +1,97 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <title>ChoiWonHyeok | Study</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 15%; background: #000; border-bottom: 1px solid #1a1a1a; position: sticky; top: 0; z-index: 1000; }
-        .nav-logo { font-size: 1.4rem; font-weight: bold; color: #00ff88; text-decoration: none; }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { color: #888; text-decoration: none; font-size: 0.95rem; }
-        .nav-links a.active { color: #fff; font-weight: bold; }
-        .write-btn { background: #5865f2; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; float: right; margin-bottom: 20px; font-weight: bold; }
-        #study-form-section { display: none; background: #1a1a1a; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px solid #333; }
-        table { width: 100%; border-collapse: collapse; color: #fff; }
-        th { color: #555; font-size: 0.85rem; padding-bottom: 15px; border-bottom: 2px solid #1a1a1a; text-align: left; }
-        td { padding: 20px 10px; border-bottom: 1px solid #1a1a1a; }
-        .tag { padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; background: #1a1a1a; color: #00ff88; border: 1px solid #333; }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 15%;
+            background: #000;
+            border-bottom: 1px solid #1a1a1a;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #00ff88;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a.active {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .write-btn {
+            background: #5865f2;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            float: right;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        #study-form-section {
+            display: none;
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #fff;
+        }
+
+        th {
+            color: #555;
+            font-size: 0.85rem;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a1a1a;
+            text-align: left;
+        }
+
+        td {
+            padding: 20px 10px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .tag {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            background: #1a1a1a;
+            color: #00ff88;
+            border: 1px solid #333;
+        }
     </style>
 </head>
+
 <body>
     <nav>
         <a href="/" class="nav-logo">ChoiWonHyeok</a>
@@ -28,8 +102,7 @@
         </div>
     </nav>
     <div class="board-container">
-        <button class="write-btn" onclick="toggleForm()">+ 기록하기</button>
-        <div style="clear: both;"></div>
+        <button id="write-btn" class="write-btn" style="display: none;" onclick="toggleForm()">+ 기록하기</button>        <div style="clear: both;"></div>
         <section id="study-form-section">
             <h2 style="color: #00ff88; margin-bottom: 15px;">새 공부 기록</h2>
             <input type="text" id="title" placeholder="주제">
@@ -40,13 +113,19 @@
         </section>
         <section class="list-section">
             <table>
-                <thead><tr><th>주제</th><th>분야</th><th>날짜</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>주제</th>
+                        <th>분야</th>
+                        <th>날짜</th>
+                    </tr>
+                </thead>
                 <tbody id="study-list"></tbody>
             </table>
         </section>
     </div>
     <script>
-        function toggleForm() { const f = document.getElementById('study-form-section'); f.style.display = f.style.display==='block'?'none':'block'; }
+        function toggleForm() { const f = document.getElementById('study-form-section'); f.style.display = f.style.display === 'block' ? 'none' : 'block'; }
         async function addStudy() {
             const body = { title: document.getElementById('title').value, category: document.getElementById('category').value, content: document.getElementById('markdown-content').value, imageUrl: document.getElementById('imageUrl').value };
             await fetch('/add-study', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -61,6 +140,45 @@
                 </tr>`).join('');
         }
         loadStudies();
+
+        // 상단 네비게이션 및 권한 UI 제어 함수
+        async function checkLoginStatus() {
+            const res = await fetch('/api/check-auth');
+            const data = await res.json();
+
+            const loginLink = document.getElementById('login-link'); // 네비게이션의 로그인 링크
+            const writeBtn = document.getElementById('write-btn');   // 스터디 페이지의 글쓰기 버튼
+            const adminBtns = document.querySelector('.admin-btns'); // 상세 페이지의 수정/삭제 버튼 그룹
+
+            if (data.isLoggedIn) {
+                // 로그인 상태일 때
+                if (loginLink) loginLink.innerHTML = `<a href="#" onclick="logout()">Logout</a>`;
+                if (writeBtn) writeBtn.style.display = 'block';
+                if (adminBtns) adminBtns.style.display = 'flex';
+            } else {
+                // 로그아웃 상태일 때
+                if (writeBtn) writeBtn.style.display = 'none';
+                if (adminBtns) adminBtns.style.display = 'none';
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            location.reload();
+        }
+
+        async function checkAuth() {
+            const res = await fetch('/api/check-auth');
+            const data = await res.json();
+            if (data.isLoggedIn) {
+                document.getElementById('write-btn').style.display = 'block';
+            }
+        }
+        checkAuth();
+
+        // 페이지 로드 시 실행
+        checkLoginStatus();
     </script>
 </body>
+
 </html>

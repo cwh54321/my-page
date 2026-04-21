@@ -1,3 +1,9 @@
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
+
+app.use(cookieParser());
+const JWT_SECRET = "wonhyeok_secret_key_999"; // 토큰 암호화 키 (아무거나 길게 쓰세요)
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
@@ -54,3 +60,43 @@ app.put('/api/study/:id', async (req, res) => { await Study.findByIdAndUpdate(re
 app.delete('/api/study/:id', async (req, res) => { await Study.findByIdAndDelete(req.params.id); res.json({ok:true}); });
 
 module.exports = app;
+
+const User = mongoose.models.User || mongoose.model('User', new mongoose.Schema({
+    userId: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+}));
+
+app.get('/api/check-auth', (req, res) => {
+    const token = req.cookies.token;
+    if (!token) return res.json({ isLoggedIn: false });
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        res.json({ isLoggedIn: true, userId: decoded.userId });
+    } catch (err) {
+        res.json({ isLoggedIn: false });
+    }
+});
+
+// app.js
+
+// [중요] 기존 API 코드들 중에서 수정/삭제/생성 부분에 'isLogined'를 추가하세요!
+// (조회 API는 로그인 안 해도 볼 수 있게 그대로 둡니다)
+
+// 스터디 등록 API 보호
+app.post('/add-study', isLogined, async (req, res) => { 
+    await new Study(req.body).save(); 
+    res.status(201).json({ok:true}); 
+});
+
+// 스터디 수정 API 보호
+app.put('/api/study/:id', isLogined, async (req, res) => { 
+    await Study.findByIdAndUpdate(req.params.id, req.body); 
+    res.json({ok:true}); 
+});
+
+// 스터디 삭제 API 보호
+app.delete('/api/study/:id', isLogined, async (req, res) => { 
+    await Study.findByIdAndDelete(req.params.id); 
+    res.json({ok:true}); 
+});

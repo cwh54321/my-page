@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,12 +19,33 @@
             top: 0;
             z-index: 1000;
         }
-        .nav-logo { font-size: 1.4rem; font-weight: bold; color: #00ff88; text-decoration: none; }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { color: #888; text-decoration: none; font-size: 0.95rem; transition: 0.3s; }
-        .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+        .nav-logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #00ff88;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #fff;
+        }
     </style>
 </head>
+
 <body>
     <nav>
         <a href="/" class="nav-logo">ChoiWonHyeok</a>
@@ -109,6 +131,36 @@
         }
 
         loadPosts();
+
+        // 상단 네비게이션 및 권한 UI 제어 함수
+        async function checkLoginStatus() {
+            const res = await fetch('/api/check-auth');
+            const data = await res.json();
+
+            const loginLink = document.getElementById('login-link'); // 네비게이션의 로그인 링크
+            const writeBtn = document.getElementById('write-btn');   // 스터디 페이지의 글쓰기 버튼
+            const adminBtns = document.querySelector('.admin-btns'); // 상세 페이지의 수정/삭제 버튼 그룹
+
+            if (data.isLoggedIn) {
+                // 로그인 상태일 때
+                if (loginLink) loginLink.innerHTML = `<a href="#" onclick="logout()">Logout</a>`;
+                if (writeBtn) writeBtn.style.display = 'block';
+                if (adminBtns) adminBtns.style.display = 'flex';
+            } else {
+                // 로그아웃 상태일 때
+                if (writeBtn) writeBtn.style.display = 'none';
+                if (adminBtns) adminBtns.style.display = 'none';
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            location.reload();
+        }
+
+        // 페이지 로드 시 실행
+        checkLoginStatus();
     </script>
 </body>
+
 </html>

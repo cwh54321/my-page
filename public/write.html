@@ -7,34 +7,25 @@
 </head>
 <body>
     <div class="container">
-        <h2>새 공부 기록 작성</h2>
-        <div style="margin-top: 20px;">
-            <input type="text" id="title" placeholder="제목" style="width:100%; padding:15px; margin-bottom:10px; background:#1a1a1a; color:#fff; border:1px solid #333;">
-            <input type="text" id="category" placeholder="카테고리 (예: JavaScript)" style="width:100%; padding:15px; margin-bottom:10px; background:#1a1a1a; color:#fff; border:1px solid #333;">
-            <textarea id="content" placeholder="내용을 입력하세요" style="width:100%; height:300px; padding:15px; background:#1a1a1a; color:#fff; border:1px solid #333;"></textarea>
-            <button onclick="submitStudy()" class="submit-btn" style="width:100%; margin-top:20px;">기록 저장하기</button>
-        </div>
+        <h2>새 공부 기록</h2>
+        <input type="text" id="title" placeholder="제목" style="width:100%; padding:10px; margin:10px 0; background:#1a1a1a; color:#fff; border:1px solid #333;">
+        <input type="text" id="category" placeholder="카테고리" style="width:100%; padding:10px; margin:10px 0; background:#1a1a1a; color:#fff; border:1px solid #333;">
+        <textarea id="content" placeholder="내용" style="width:100%; height:200px; padding:10px; background:#1a1a1a; color:#fff; border:1px solid #333;"></textarea>
+        <button onclick="save()" class="submit-btn" style="width:100%; margin-top:10px;">저장</button>
     </div>
-
     <script>
-        async function submitStudy() {
-            const title = document.getElementById('title').value;
-            const category = document.getElementById('category').value;
-            const content = document.getElementById('content').value;
-
+        async function save() {
             const res = await fetch('/add-study', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, category, content })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    title: document.getElementById('title').value,
+                    category: document.getElementById('category').value,
+                    content: document.getElementById('content').value
+                })
             });
-
-            if (res.ok) {
-                alert("기록 완료!");
-                location.href = '/study';
-            } else {
-                const data = await res.json();
-                alert(data.message || "오류가 발생했습니다.");
-            }
+            if(res.ok) { alert("저장됨!"); location.href='/study'; }
+            else { alert("권한이 없습니다."); }
         }
     </script>
 </body>

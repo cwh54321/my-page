@@ -15,28 +15,34 @@
             <span id="login-link"><a href="/login">Login</a></span>
         </div>
     </nav>
-
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-            <h2 style="font-size: 2rem;">Study Logs</h2>
-            <button id="write-btn" class="write-btn" style="display: none;" onclick="location.href='/write.html'">+ 기록하기</button>        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <h2>Study Logs</h2>
+            <button id="write-btn" class="submit-btn" style="display:none;" onclick="location.href='/write'">+ 기록하기</button>
+        </div>
         <div id="study-list" class="grid"></div>
     </div>
-
     <script>
-        async function loadStudies() {
+        async function load() {
             const res = await fetch('/studies');
             const data = await res.json();
             document.getElementById('study-list').innerHTML = data.map(s => `
-                <div class="card" onclick="location.href='/study/${s._id}'">
-                    <span class="tag">${s.category}</span>
-                    <h3 style="margin: 15px 0 10px 0;">${s.title}</h3>
-                    <small style="color: #666;">${new Date(s.date).toLocaleDateString()}</small>
+                <div class="card">
+                    <h3>${s.title}</h3>
+                    <p>${s.category}</p>
                 </div>
             `).join('');
+
+            const authRes = await fetch('/api/check-auth');
+            const authData = await authRes.json();
+            if (authData.isLoggedIn) {
+                document.getElementById('login-link').innerHTML = `<a href="#" onclick="fetch('/api/logout',{method:'POST'}).then(()=>location.reload())">Logout</a>`;
+                if (authData.userId === "cwh12345") {
+                    document.getElementById('write-btn').style.display = 'block';
+                }
+            }
         }
-        loadStudies();
+        load();
     </script>
-    <script src="/auth.js"></script>
 </body>
 </html>

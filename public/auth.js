@@ -9,10 +9,13 @@ async function checkAuth() {
 
     if (data.isLoggedIn) {
         if(loginLink) loginLink.innerHTML = `<a href="#" onclick="handleLogout()">Logout</a>`;
-        // 원혁님 아이디일 때만 관리자 버튼 노출
-        if(data.userId === "wonhyeok_admin") { // 본인 아이디로 수정
-            if(writeBtn) writeBtn.style.display = 'block';
-            if(adminControls) adminControls.style.display = 'flex';
+        
+        // ⭐ 관리자 아이디 체크
+        if(data.userId === "cwh12345") { 
+            if(document.getElementById('write-btn')) 
+                document.getElementById('write-btn').style.display = 'block';
+            if(document.getElementById('admin-controls')) 
+                document.getElementById('admin-controls').style.display = 'flex';
         }
     }
 }

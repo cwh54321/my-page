@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Write | ChoiWonHyeok</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>새 공부 기록 작성</h2>
+        <div style="margin-top: 20px;">
+            <input type="text" id="title" placeholder="제목" style="width:100%; padding:15px; margin-bottom:10px; background:#1a1a1a; color:#fff; border:1px solid #333;">
+            <input type="text" id="category" placeholder="카테고리 (예: JavaScript)" style="width:100%; padding:15px; margin-bottom:10px; background:#1a1a1a; color:#fff; border:1px solid #333;">
+            <textarea id="content" placeholder="내용을 입력하세요" style="width:100%; height:300px; padding:15px; background:#1a1a1a; color:#fff; border:1px solid #333;"></textarea>
+            <button onclick="submitStudy()" class="submit-btn" style="width:100%; margin-top:20px;">기록 저장하기</button>
+        </div>
+    </div>
+
+    <script>
+        async function submitStudy() {
+            const title = document.getElementById('title').value;
+            const category = document.getElementById('category').value;
+            const content = document.getElementById('content').value;
+
+            const res = await fetch('/add-study', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, category, content })
+            });
+
+            if (res.ok) {
+                alert("기록 완료!");
+                location.href = '/study';
+            } else {
+                const data = await res.json();
+                alert(data.message || "오류가 발생했습니다.");
+            }
+        }
+    </script>
+</body>
+</html>

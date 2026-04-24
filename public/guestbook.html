@@ -58,14 +58,32 @@
         async function loadPosts() {
             const res = await fetch('/posts');
             const posts = await res.json();
-            document.getElementById('posts-list').innerHTML = posts.map(p => `
-                <div style="border-bottom: 1px solid #1a1a1a; padding: 15px 0;">
-                    <strong style="color: #00ff88;">${p.nickname}</strong>
-                    <p style="margin: 5px 0;">${p.content}</p>
-                    <small style="color: #555;">${new Date(p.date).toLocaleString()}</small>
-                </div>
-            `).join('');
+            const auth = await fetch('/api/check-auth').then(r => r.json());
+        
+            document.getElementById('posts-list').innerHTML = posts.map(p => {
+                // 본인 글이거나 관리자(cwh12345)일 때 삭제 버튼 노출
+                const canDelete = auth.isLoggedIn && (auth.userId === p.nickname || auth.userId === "cwh12345");
+                
+                return `
+                    <div style="border-bottom: 1px solid #333; padding: 15px 0;">
+                        <strong style="color: #00ff88;">${p.nickname}</strong>
+                        <p>${p.content}</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <small style="color:#555;">${new Date(p.date).toLocaleString()}</small>
+                            ${canDelete ? `<button onclick="deletePost('${p._id}')" style="color:#ff4444; background:none; border:none; cursor:pointer;">삭제</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
+        
+        async function deletePost(id) {
+            if(confirm("정말 삭제할까요?")) {
+                const res = await fetch(`/api/post/${id}`, { method: 'DELETE' });
+                if(res.ok) location.reload();
+            }
+        }
+        loadPosts();
 
         async function handleLogout() {
             await fetch('/api/logout', { method: 'POST' });
@@ -73,7 +91,6 @@
         }
 
         checkAuth();
-        loadPosts();
     </script>
 </body>
 </html>

@@ -2,42 +2,62 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | ChoiWonHyeok</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .login-container { max-width: 400px; margin: 100px auto; padding: 40px; background: #1a1a1a; border-radius: 20px; border: 1px solid #333; text-align: center; }
-        input { width: 100%; padding: 15px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
-        input:focus { border-color: #00ff88; outline: none; }
-        .auth-btn { width: 100%; padding: 15px; background: #00ff88; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .switch-link { margin-top: 20px; display: block; color: #888; text-decoration: none; font-size: 0.9rem; }
+        .auth-container { max-width: 400px; margin: 100px auto; padding: 40px; background: #111; border-radius: 20px; border: 1px solid #222; text-align: center; }
+        .auth-input { width: 100%; padding: 14px 16px; margin-bottom: 14px; background: #0a0a0a; border: 1px solid #2a2a2a; color: #fff; border-radius: 10px; box-sizing: border-box; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+        .auth-input:focus { border-color: #00ff88; }
+        .auth-btn { width: 100%; padding: 14px; background: #00ff88; color: #000; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+        .auth-btn:hover { background: #00cc6e; }
+        .auth-err { color: #ff4444; font-size: 0.88rem; margin-top: -8px; margin-bottom: 12px; min-height: 20px; }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2 style="color: #00ff88; margin-bottom: 30px;">Admin Login</h2>
-        <input type="text" id="userId" placeholder="아이디">
-        <input type="password" id="password" placeholder="비밀번호">
-        <button class="auth-btn" onclick="handleLogin()">로그인</button>
-        <a href="/register.html" class="switch-link">계정이 없으신가요? 회원가입</a>
+    <nav>
+        <a href="/" class="nav-logo">ChoiWonHyeok</a>
+    </nav>
+    <div class="auth-container">
+        <h2 style="color: #00ff88; margin-bottom: 8px;">Login</h2>
+        <p style="color:#555; font-size:0.9rem; margin-bottom:28px;">계정에 로그인하세요</p>
+        <input type="text" id="userId" placeholder="아이디" class="auth-input" onkeydown="if(event.key==='Enter') handleLogin()">
+        <input type="password" id="password" placeholder="비밀번호" class="auth-input" onkeydown="if(event.key==='Enter') handleLogin()">
+        <p id="err-msg" class="auth-err"></p>
+        <button class="auth-btn" onclick="handleLogin()" id="login-btn">로그인</button>
+        <a href="/register" style="display:block; margin-top:20px; color:#555; font-size:0.9rem;">계정이 없으신가요? <span style="color:#00ff88;">회원가입</span></a>
     </div>
-
+ 
     <script>
+        // 이미 로그인 중이면 리다이렉트
+        (async () => {
+            const auth = await fetch('/api/check-auth').then(r => r.json());
+            if (auth.isLoggedIn) location.href = '/';
+        })();
+ 
         async function handleLogin() {
-            const userId = document.getElementById('userId').value;
+            const userId = document.getElementById('userId').value.trim();
             const password = document.getElementById('password').value;
-            
+            const err = document.getElementById('err-msg');
+            const btn = document.getElementById('login-btn');
+ 
+            if (!userId || !password) { err.textContent = "아이디와 비밀번호를 입력해주세요."; return; }
+ 
+            btn.disabled = true; btn.textContent = '로그인 중...';
+            err.textContent = '';
+ 
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId, password })
             });
-            
             const data = await res.json();
-            if(data.ok) {
-                alert("로그인 성공!");
-                location.href = '/study'; // 로그인 후 이동할 페이지
+ 
+            if (data.ok) {
+                location.href = '/';
             } else {
-                alert(data.message);
+                err.textContent = data.message || "아이디 또는 비밀번호가 틀렸습니다.";
+                btn.disabled = false; btn.textContent = '로그인';
             }
         }
     </script>

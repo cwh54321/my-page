@@ -2,40 +2,112 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study | ChoiWonHyeok</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .detail-header { margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #222; }
+        .detail-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+        .detail-title { font-size: 2rem; font-weight: bold; line-height: 1.3; }
+        .detail-date { color: #555; font-size: 0.85rem; margin-top: 10px; }
+        .detail-img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 16px; margin: 30px 0; }
+        .md-body { line-height: 1.9; font-size: 1rem; color: #ccc; }
+        .md-body h1,.md-body h2,.md-body h3 { color: #fff; margin: 32px 0 12px; }
+        .md-body h2 { border-bottom: 1px solid #222; padding-bottom: 8px; }
+        .md-body code { background: #1a1a1a; color: #00ff88; padding: 2px 8px; border-radius: 4px; font-size: 0.88em; }
+        .md-body pre { background: #0d0d0d; border: 1px solid #2a2a2a; padding: 18px; border-radius: 12px; overflow-x: auto; margin: 20px 0; }
+        .md-body pre code { background: none; color: #eee; padding: 0; }
+        .md-body blockquote { border-left: 3px solid #00ff88; padding: 8px 16px; margin: 20px 0; color: #888; background: #111; border-radius: 0 8px 8px 0; }
+        .md-body a { color: #00ff88; }
+        .md-body img { max-width: 100%; border-radius: 10px; }
+        .md-body ul,.md-body ol { padding-left: 24px; }
+        .md-body li { margin: 6px 0; }
+        .md-body hr { border: none; border-top: 1px solid #222; margin: 32px 0; }
+        .admin-bar { display: none; gap: 10px; margin-top: 60px; padding-top: 30px; border-top: 1px solid #222; }
+    </style>
 </head>
 <body>
-    <nav><a href="/" class="nav-logo">ChoiWonHyeok</a></nav>
-    <div class="container">
-        <h1 id="title"></h1>
-        <div id="img-area" style="margin:20px 0;"></div>
-        <p id="content" style="white-space:pre-wrap;"></p>
-        
-        <div id="admin-menu" style="display:none; margin-top:50px; gap:10px;">
-            <button onclick="deletePost()" class="submit-btn" style="background:#ff4444;">삭제하기</button>
+    <nav>
+        <a href="/" class="nav-logo">ChoiWonHyeok</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/study" class="active">Study</a>
+            <a href="/guestbook">Guestbook</a>
+            <span id="login-link"><a href="/login">Login</a></span>
         </div>
+    </nav>
+ 
+    <div class="container" style="max-width:750px;">
+        <a href="/study" style="color:#555; font-size:0.9rem;">← Study 목록으로</a>
+ 
+        <div id="loading" style="text-align:center; padding:80px 0; color:#555;">불러오는 중...</div>
+ 
+        <article id="article" style="display:none;">
+            <div class="detail-header">
+                <div class="detail-meta">
+                    <span class="tag" id="category"></span>
+                </div>
+                <h1 class="detail-title" id="title"></h1>
+                <p class="detail-date" id="date"></p>
+            </div>
+ 
+            <img id="hero-img" class="detail-img" style="display:none;" alt="">
+            <div id="content" class="md-body"></div>
+ 
+            <div class="admin-bar" id="admin-bar">
+                <button onclick="location.href='/write?edit='+id" class="submit-btn btn-outline">수정하기</button>
+                <button onclick="deletePost()" class="submit-btn" style="background:#ff4444; color:#fff;">삭제하기</button>
+            </div>
+        </article>
     </div>
-
+ 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         const id = location.pathname.split('/').pop();
-
+ 
         async function load() {
-            const res = await fetch(`/api/study/${id}`);
-            const s = await res.json();
-            document.getElementById('title').innerText = s.title;
-            document.getElementById('content').innerText = s.content;
-            if(s.imageUrl) document.getElementById('img-area').innerHTML = `<img src="${s.imageUrl}" style="max-width:100%; border-radius:10px;">`;
-
-            const auth = await fetch('/api/check-auth').then(r => r.json());
-            if(auth.userId === "cwh12345") document.getElementById('admin-menu').style.display = 'flex';
-        }
-
-        async function deletePost() {
-            if(confirm("삭제하시겠습니까?")) {
-                await fetch(`/api/study/${id}`, { method: 'DELETE' });
-                location.href = '/study';
+            const [studyRes, authRes] = await Promise.all([
+                fetch(`/api/study/${id}`),
+                fetch('/api/check-auth')
+            ]);
+            const s = await studyRes.json();
+            const auth = await authRes.json();
+ 
+            if (auth.isLoggedIn) {
+                document.getElementById('login-link').innerHTML = `<a href="#" onclick="logout()">Logout</a>`;
+            }
+ 
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('article').style.display = 'block';
+ 
+            document.getElementById('category').textContent = s.category || '기타';
+            document.getElementById('title').textContent = s.title;
+            document.getElementById('date').textContent = new Date(s.date).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+            document.getElementById('content').innerHTML = marked.parse(s.content || '');
+ 
+            if (s.imageBase64) {
+                const img = document.getElementById('hero-img');
+                img.src = s.imageBase64;
+                img.style.display = 'block';
+            }
+ 
+            if (auth.isAdmin) {
+                document.getElementById('admin-bar').style.display = 'flex';
             }
         }
+ 
+        async function deletePost() {
+            if (!confirm("정말 삭제하시겠습니까?")) return;
+            const res = await fetch(`/api/study/${id}`, { method: 'DELETE' });
+            if (res.ok) location.href = '/study';
+            else alert("삭제에 실패했습니다.");
+        }
+ 
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            location.reload();
+        }
+ 
         load();
     </script>
 </body>

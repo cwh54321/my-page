@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study | ChoiWonHyeok</title>
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -15,33 +16,77 @@
             <span id="login-link"><a href="/login">Login</a></span>
         </div>
     </nav>
+ 
     <div class="container">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <h2>Study Logs</h2>
+        <div class="page-header">
+            <div>
+                <h2>Study Logs</h2>
+                <p class="page-sub">공부한 내용을 기록합니다</p>
+            </div>
             <button id="write-btn" class="submit-btn" style="display:none;" onclick="location.href='/write'">+ 기록하기</button>
         </div>
+ 
+        <div id="filter-area" class="filter-area"></div>
         <div id="study-list" class="grid"></div>
+        <p id="empty-msg" style="display:none; text-align:center; color:#555; padding:60px 0;">아직 기록이 없습니다.</p>
     </div>
+ 
     <script>
+        let allStudies = [];
+        let currentFilter = 'all';
+ 
         async function load() {
-            const res = await fetch('/studies');
-            const data = await res.json();
-            document.getElementById('study-list').innerHTML = data.map(s => `
-                <div class="card">
-                    <h3>${s.title}</h3>
-                    <p>${s.category}</p>
+            const [studyRes, authRes] = await Promise.all([
+                fetch('/studies'),
+                fetch('/api/check-auth')
+            ]);
+            allStudies = await studyRes.json();
+            const auth = await authRes.json();
+ 
+            if (auth.isLoggedIn) {
+                document.getElementById('login-link').innerHTML =
+                    `<a href="#" onclick="logout()">Logout</a>`;
+                if (auth.isAdmin) document.getElementById('write-btn').style.display = 'block';
+            }
+ 
+            renderFilters();
+            renderList(allStudies);
+        }
+ 
+        function renderFilters() {
+            const cats = ['all', ...new Set(allStudies.map(s => s.category).filter(Boolean))];
+            document.getElementById('filter-area').innerHTML = cats.map(c =>
+                `<button class="filter-btn ${c === 'all' ? 'active' : ''}" onclick="filterBy('${c}')">${c === 'all' ? '전체' : c}</button>`
+            ).join('');
+        }
+ 
+        function filterBy(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const filtered = cat === 'all' ? allStudies : allStudies.filter(s => s.category === cat);
+            renderList(filtered);
+        }
+ 
+        function renderList(data) {
+            const el = document.getElementById('study-list');
+            const empty = document.getElementById('empty-msg');
+            if (!data.length) { el.innerHTML = ''; empty.style.display = 'block'; return; }
+            empty.style.display = 'none';
+            el.innerHTML = data.map(s => `
+                <div class="card" onclick="location.href='/study/${s._id}'">
+                    <span class="tag">${s.category || '기타'}</span>
+                    <h3 style="margin: 12px 0 8px;">${s.title}</h3>
+                    <p style="color:#666; font-size:0.85rem;">${new Date(s.date).toLocaleDateString('ko-KR')}</p>
                 </div>
             `).join('');
-
-            const authRes = await fetch('/api/check-auth');
-            const authData = await authRes.json();
-            if (authData.isLoggedIn) {
-                document.getElementById('login-link').innerHTML = `<a href="#" onclick="fetch('/api/logout',{method:'POST'}).then(()=>location.reload())">Logout</a>`;
-                if (authData.userId === "cwh12345") {
-                    document.getElementById('write-btn').style.display = 'block';
-                }
-            }
         }
+ 
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            location.reload();
+        }
+ 
         load();
     </script>
 </body>

@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChoiWonHyeok | Home</title>
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -15,13 +16,20 @@
             <span id="login-link"><a href="/login">Login</a></span>
         </div>
     </nav>
-
-    <header style="height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-        <h1 style="font-size: 3.5rem; margin-bottom: 10px;">안녕하세요 최원혁입니다</h1>
-        <p style="color: #888; font-size: 1.2rem;">백엔드 개발자를 꿈꾸는 2학년 4반 학생입니다.</p>
-        <button class="submit-btn" style="margin-top: 30px;" onclick="location.href='/study'">공부 기록 보기</button>
+ 
+    <header class="hero">
+        <div class="hero-content">
+            <p class="hero-sub">안녕하세요 👋</p>
+            <h1 class="hero-title">최원혁입니다</h1>
+            <p class="hero-desc">백엔드 개발자를 꿈꾸는 학생입니다.</p>
+            <div class="hero-btns">
+                <button class="submit-btn" onclick="location.href='/study'">공부 기록 보기</button>
+                <button class="submit-btn btn-outline" onclick="location.href='/guestbook'">방명록 남기기</button>
+            </div>
+        </div>
     </header>
-
+ 
     <script src="/auth.js"></script>
 </body>
 </html>
+ 

@@ -2,8 +2,28 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guestbook | ChoiWonHyeok</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .post-card { background: #111; border: 1px solid #222; border-radius: 14px; padding: 20px; margin-bottom: 16px; transition: border-color 0.2s; }
+        .post-card:hover { border-color: #2a2a2a; }
+        .post-author { color: #00ff88; font-weight: bold; font-size: 0.95rem; margin-bottom: 10px; }
+        .post-content { color: #ccc; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+        .post-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+        .post-date { color: #444; font-size: 0.8rem; }
+        .post-actions { display: flex; gap: 8px; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 0.82rem; padding: 4px 10px; border-radius: 6px; transition: 0.2s; }
+        .action-btn.edit { color: #888; border: 1px solid #333; }
+        .action-btn.edit:hover { color: #fff; border-color: #555; }
+        .action-btn.del { color: #ff4444; border: 1px solid #3a1111; }
+        .action-btn.del:hover { background: #ff4444; color: #fff; }
+        .write-box { background: #111; border: 1px solid #333; border-radius: 14px; padding: 24px; margin-bottom: 36px; }
+        .write-box textarea { width: 100%; height: 100px; background: #0a0a0a; color: #eee; border: 1px solid #2a2a2a; border-radius: 8px; padding: 12px; resize: vertical; font-size: 0.95rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        .write-box textarea:focus { border-color: #00ff88; }
+        .login-notice { text-align: center; padding: 30px; background: #0d0d0d; border: 1px dashed #2a2a2a; border-radius: 14px; margin-bottom: 36px; color: #555; }
+        .edit-textarea { width: 100%; background: #0a0a0a; color: #eee; border: 1px solid #00ff88; border-radius: 8px; padding: 10px; margin: 8px 0; resize: vertical; font-size: 0.92rem; outline: none; box-sizing: border-box; }
+    </style>
 </head>
 <body>
     <nav>
@@ -15,82 +35,130 @@
             <span id="login-link"><a href="/login">Login</a></span>
         </div>
     </nav>
-
-    <div class="container" style="max-width: 600px;">
-        <h2>Guestbook</h2>
-        
-        <div id="guest-form" style="display: none; margin-bottom: 40px; background: #1a1a1a; padding: 20px; border-radius: 15px;">
-            <p id="user-info" style="color: #00ff88; margin-bottom: 10px;"></p>
-            <textarea id="content" placeholder="방명록을 남겨주세요!" style="width: 100%; height: 100px; background: #000; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 8px;"></textarea>
-            <button onclick="addPost()" class="submit-btn" style="width: 100%; margin-top: 10px;">등록하기</button>
+ 
+    <div class="container" style="max-width:650px;">
+        <div class="page-header" style="margin-bottom:32px;">
+            <div>
+                <h2>Guestbook</h2>
+                <p class="page-sub">방명록을 남겨주세요!</p>
+            </div>
         </div>
-
-        <div id="login-msg" style="text-align: center; padding: 20px; border: 1px dashed #333; border-radius: 15px; margin-bottom: 40px;">
-            <p style="color: #888;">방명록을 남기려면 <a href="/login" style="color: #00ff88;">로그인</a>이 필요합니다.</p>
-        </div>
-
+ 
+        <!-- 로그인 상태에 따라 표시 -->
+        <div id="write-area"></div>
+ 
         <div id="posts-list"></div>
+        <p id="empty-msg" style="display:none; text-align:center; color:#444; padding:40px 0;">아직 방명록이 없습니다. 첫 번째로 남겨보세요!</p>
     </div>
-
+ 
     <script>
-        async function checkAuth() {
+        let currentAuth = { isLoggedIn: false };
+ 
+        async function init() {
             const res = await fetch('/api/check-auth');
-            const data = await res.json();
-            
-            if (data.isLoggedIn) {
-                document.getElementById('login-link').innerHTML = `<a href="#" onclick="handleLogout()">Logout</a>`;
-                document.getElementById('guest-form').style.display = 'block';
-                document.getElementById('login-msg').style.display = 'none';
-                document.getElementById('user-info').innerText = `작성자: ${data.userId}`;
+            currentAuth = await res.json();
+ 
+            if (currentAuth.isLoggedIn) {
+                document.getElementById('login-link').innerHTML = `<a href="#" onclick="logout()">Logout</a>`;
+                document.getElementById('write-area').innerHTML = `
+                    <div class="write-box">
+                        <p style="color:#00ff88; font-size:0.9rem; margin-bottom:12px;">✍️ ${currentAuth.userId} 으로 작성 중</p>
+                        <textarea id="new-content" placeholder="방명록을 남겨주세요!"></textarea>
+                        <button onclick="addPost()" class="submit-btn" style="width:100%; margin-top:12px;">등록하기</button>
+                    </div>`;
+            } else {
+                document.getElementById('write-area').innerHTML = `
+                    <div class="login-notice">
+                        방명록을 남기려면 <a href="/login" style="color:#00ff88;">로그인</a>이 필요합니다.
+                    </div>`;
             }
+            loadPosts();
         }
-
+ 
         async function addPost() {
-            const content = document.getElementById('content').value;
+            const content = document.getElementById('new-content').value.trim();
+            if (!content) { alert("내용을 입력해주세요."); return; }
             const res = await fetch('/add-post', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content })
             });
-            if(res.ok) { location.reload(); }
+            if (res.ok) { document.getElementById('new-content').value = ''; loadPosts(); }
         }
-
+ 
         async function loadPosts() {
-            const res = await fetch('/posts');
-            const posts = await res.json();
-            const auth = await fetch('/api/check-auth').then(r => r.json());
-        
-            document.getElementById('posts-list').innerHTML = posts.map(p => {
-                // 본인 글이거나 관리자(cwh12345)일 때 삭제 버튼 노출
-                const canDelete = auth.isLoggedIn && (auth.userId === p.nickname || auth.userId === "cwh12345");
-                
+            const posts = await fetch('/posts').then(r => r.json());
+            const list = document.getElementById('posts-list');
+            const empty = document.getElementById('empty-msg');
+ 
+            if (!posts.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+            empty.style.display = 'none';
+ 
+            list.innerHTML = posts.map(p => {
+                const canModify = currentAuth.isLoggedIn &&
+                    (currentAuth.userId === p.nickname || currentAuth.isAdmin);
                 return `
-                    <div style="border-bottom: 1px solid #333; padding: 15px 0;">
-                        <strong style="color: #00ff88;">${p.nickname}</strong>
-                        <p>${p.content}</p>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <small style="color:#555;">${new Date(p.date).toLocaleString()}</small>
-                            ${canDelete ? `<button onclick="deletePost('${p._id}')" style="color:#ff4444; background:none; border:none; cursor:pointer;">삭제</button>` : ''}
-                        </div>
+                <div class="post-card" id="card-${p._id}">
+                    <div class="post-author">${p.nickname}</div>
+                    <div class="post-content" id="content-${p._id}">${escHtml(p.content)}</div>
+                    <div class="post-footer">
+                        <span class="post-date">${new Date(p.date).toLocaleString('ko-KR')}</span>
+                        ${canModify ? `
+                        <div class="post-actions">
+                            <button class="action-btn edit" onclick="startEdit('${p._id}', this)">수정</button>
+                            <button class="action-btn del" onclick="deletePost('${p._id}')">삭제</button>
+                        </div>` : ''}
                     </div>
-                `;
+                </div>`;
             }).join('');
         }
-        
-        async function deletePost(id) {
-            if(confirm("정말 삭제할까요?")) {
-                const res = await fetch(`/api/post/${id}`, { method: 'DELETE' });
-                if(res.ok) location.reload();
-            }
+ 
+        function startEdit(id, btn) {
+            const contentEl = document.getElementById(`content-${id}`);
+            const original = contentEl.textContent;
+            contentEl.innerHTML = `
+                <textarea class="edit-textarea" id="edit-${id}" rows="3">${original}</textarea>
+                <div style="display:flex; gap:8px; margin-top:6px;">
+                    <button class="action-btn edit" onclick="saveEdit('${id}')">저장</button>
+                    <button class="action-btn del" onclick="cancelEdit('${id}', \`${original.replace(/`/g, '\\`')}\`)">취소</button>
+                </div>`;
+            btn.parentElement.style.display = 'none';
         }
-        loadPosts();
-
-        async function handleLogout() {
+ 
+        async function saveEdit(id) {
+            const content = document.getElementById(`edit-${id}`).value.trim();
+            if (!content) { alert("내용을 입력해주세요."); return; }
+            const res = await fetch(`/api/post/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            if (res.ok) loadPosts();
+            else alert("수정에 실패했습니다.");
+        }
+ 
+        function cancelEdit(id, original) {
+            loadPosts();
+        }
+ 
+        async function deletePost(id) {
+            if (!confirm("정말 삭제하시겠습니까?")) return;
+            const res = await fetch(`/api/post/${id}`, { method: 'DELETE' });
+            if (res.ok) loadPosts();
+            else alert("삭제에 실패했습니다.");
+        }
+ 
+        function escHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+ 
+        async function logout() {
             await fetch('/api/logout', { method: 'POST' });
             location.reload();
         }
-
-        checkAuth();
+ 
+        init();
     </script>
 </body>
 </html>
+ 

@@ -1,47 +1,68 @@
-/* 기본 초기화 */
+/* ── 기본 초기화 ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background-color: #000; color: #fff; font-family: 'Pretendard', sans-serif; line-height: 1.6; }
+body { background-color: #000; color: #fff; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; }
 a { text-decoration: none; color: inherit; }
-
-/* 네비게이션 바 */
+ 
+/* ── 네비게이션 ── */
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px 10%;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     border-bottom: 1px solid #1a1a1a;
     position: sticky;
     top: 0;
     z-index: 1000;
+    backdrop-filter: blur(10px);
 }
-.nav-logo { font-size: 1.5rem; font-weight: bold; color: #00ff88; }
+.nav-logo { font-size: 1.4rem; font-weight: bold; color: #00ff88; letter-spacing: -0.5px; }
 .nav-links { display: flex; gap: 25px; align-items: center; }
-.nav-links a { color: #888; transition: 0.3s; font-size: 0.95rem; }
+.nav-links a { color: #666; transition: color 0.2s; font-size: 0.92rem; }
 .nav-links a:hover, .nav-links a.active { color: #00ff88; }
-
-/* 중앙 컨테이너 */
-.container {
-    max-width: 1000px;
-    margin: 60px auto;
-    padding: 0 20px;
+ 
+/* ── 컨테이너 ── */
+.container { max-width: 1000px; margin: 60px auto; padding: 0 24px; }
+ 
+/* ── 페이지 헤더 ── */
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; }
+.page-header h2 { font-size: 1.8rem; font-weight: bold; }
+.page-sub { color: #555; font-size: 0.92rem; margin-top: 4px; }
+ 
+/* ── 버튼 ── */
+.submit-btn { background: #00ff88; color: #000; padding: 11px 22px; border: none; border-radius: 9px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.92rem; white-space: nowrap; }
+.submit-btn:hover { background: #00e07a; transform: translateY(-1px); }
+.submit-btn:active { transform: translateY(0); }
+.btn-outline { background: transparent; color: #00ff88; border: 1px solid #00ff88; }
+.btn-outline:hover { background: rgba(0,255,136,0.08); transform: translateY(-1px); }
+ 
+/* ── 카드 그리드 ── */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.card { background: #0f0f0f; padding: 22px; border-radius: 14px; border: 1px solid #1e1e1e; cursor: pointer; transition: border-color 0.2s, transform 0.2s; }
+.card:hover { border-color: #00ff88; transform: translateY(-3px); }
+.card h3 { font-size: 1rem; font-weight: 600; line-height: 1.4; margin-top: 10px; }
+ 
+/* ── 태그 ── */
+.tag { color: #00ff88; background: rgba(0, 255, 136, 0.1); padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; display: inline-block; }
+ 
+/* ── 필터 버튼 ── */
+.filter-area { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+.filter-btn { padding: 6px 16px; background: #111; border: 1px solid #2a2a2a; color: #666; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
+.filter-btn:hover { border-color: #555; color: #ccc; }
+.filter-btn.active { background: #00ff88; color: #000; border-color: #00ff88; font-weight: bold; }
+ 
+/* ── 히어로 섹션 ── */
+.hero { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 24px; }
+.hero-sub { color: #555; font-size: 1rem; margin-bottom: 12px; }
+.hero-title { font-size: 3.5rem; font-weight: bold; letter-spacing: -1px; margin-bottom: 14px; }
+.hero-desc { color: #666; font-size: 1.1rem; margin-bottom: 36px; }
+.hero-btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+ 
+/* ── 반응형 ── */
+@media (max-width: 600px) {
+    nav { padding: 16px 5%; }
+    .container { margin: 36px auto; }
+    .hero-title { font-size: 2.4rem; }
+    .page-header { flex-direction: column; align-items: flex-start; gap: 14px; }
 }
-
-/* 버튼 스타일 */
-.submit-btn, .write-btn {
-    background: #00ff88;
-    color: #000;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.submit-btn:hover { background: #00cc6e; transform: translateY(-2px); }
-
-/* 카드 및 게시판 스타일 */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-.card { background: #1a1a1a; padding: 25px; border-radius: 15px; border: 1px solid #333; cursor: pointer; transition: 0.3s; }
-.card:hover { border-color: #00ff88; }
-.tag { color: #00ff88; background: rgba(0, 255, 136, 0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+ 

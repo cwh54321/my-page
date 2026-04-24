@@ -11,11 +11,34 @@ const JWT_SECRET = "wonhyeok_secret_key_999";
 const ADMIN_ID = "cwh12345";
 const dbURI = process.env.MONGODB_URI;
 
-mongoose.connect(dbURI).then(() => console.log("DB 연결 성공")).catch(err => console.log("DB 연결 실패", err));
+// Vercel 서버리스 환경: 연결 풀 재사용
+let isConnected = false;
+async function connectDB() {
+    if (isConnected && mongoose.connection.readyState === 1) return;
+    await mongoose.connect(dbURI, {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        bufferCommands: false,
+    });
+    isConnected = true;
+    console.log("DB 연결 성공");
+}
 
-app.use(express.json({ limit: '10mb' })); // base64 이미지를 위해 limit 증가
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// 모든 요청마다 DB 연결 보장
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error("DB 연결 오류:", err);
+        res.status(500).json({ ok: false, message: "DB 연결 오류가 발생했습니다." });
+    }
+});
 
 // ── 모델 ──────────────────────────────────────────────
 const Study = mongoose.models.Study || mongoose.model('Study', new mongoose.Schema({

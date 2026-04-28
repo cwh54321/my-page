@@ -58,11 +58,44 @@ nav {
 .hero-desc { color: #666; font-size: 1.1rem; margin-bottom: 36px; }
 .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
  
+/* ── GitHub 섹션 ── */
+.github-profile-card {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    background: #0f0f0f;
+    border: 1px solid #1e1e1e;
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 24px;
+}
+.github-avatar-wrap { flex-shrink: 0; }
+.github-avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #1e1e1e; }
+.github-info { flex: 1; }
+.github-name { font-size: 1.2rem; font-weight: bold; margin-bottom: 6px; }
+.github-bio { color: #666; font-size: 0.9rem; margin-bottom: 16px; }
+.github-stats { display: flex; gap: 24px; }
+.github-stat { display: flex; flex-direction: column; gap: 2px; }
+.github-stat span:first-child { font-size: 1.3rem; font-weight: bold; color: #00ff88; }
+.github-stat span:last-child { font-size: 0.78rem; color: #555; }
+
+.repo-card { display: flex; flex-direction: column; gap: 10px; cursor: pointer; }
+.repo-header { display: flex; align-items: center; gap: 8px; }
+.repo-icon { width: 16px; height: 16px; color: #555; flex-shrink: 0; }
+.repo-name { font-size: 0.95rem; font-weight: 600; color: #00ff88; margin: 0; }
+.repo-desc { color: #666; font-size: 0.85rem; line-height: 1.5; flex: 1; }
+.repo-meta { display: flex; align-items: center; gap: 14px; margin-top: auto; }
+.repo-lang { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #888; }
+.lang-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.repo-stars { font-size: 0.8rem; color: #888; }
+
 /* ── 반응형 ── */
 @media (max-width: 600px) {
     nav { padding: 16px 5%; }
     .container { margin: 36px auto; }
     .hero-title { font-size: 2.4rem; }
     .page-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .github-profile-card { flex-direction: column; align-items: flex-start; }
+    .github-stats { gap: 16px; }
 }
  
